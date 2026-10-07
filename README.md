@@ -32,7 +32,7 @@ winget install ffmpeg           # Windows
 python3 app.py
 ```
 
-Open http://localhost:5000. To use it from your phone on the same Wi-Fi, open `http://YOUR-PC-IP:5000`.
+Open http://localhost:5000. To use it from your phone on the same Wi-Fi, open `http://YOUR-PC-IP:5000`, this may give some issues due to networks and firewalls, not its intended use.
 
 ## Project structure
 
