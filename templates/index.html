@@ -2,8 +2,18 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Saca vídeo y audio de cualquier corto</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Saca vídeo y audio de cualquier enlace</title>
+  <meta name="description" content="Descarga vídeo, audio o la portada de YouTube, TikTok, Instagram y más.">
+  <meta name="theme-color" content="#0b0a1f" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f3f1ea" media="(prefers-color-scheme: light)">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
+  <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/apple-touch-icon.png') }}">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="saca.">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -16,13 +26,12 @@
     <header class="top">
       <span class="mark">saca<b>.</b></span>
       <ul class="platforms" aria-label="Plataformas admitidas">
-        <li data-p="YouTube">Shorts</li>
-        <li data-p="TikTok">TikTok</li>
-        <li data-p="Instagram">Reels</li>
+        {% for name in platforms %}<li data-p="{{ name }}">{{ name }}</li>
+        {% endfor %}
       </ul>
     </header>
 
-    <h1>Saca <em id="noun">el vídeo</em><br>de cualquier corto.</h1>
+    <h1>Saca <em id="noun">el vídeo</em><br>de cualquier enlace.</h1>
 
     <!-- Sin JavaScript también funciona: el formulario va a /download -->
     <form id="form" action="/download" method="get">
@@ -51,7 +60,8 @@
             {% set icons = {
               "video": '<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z" fill="currentColor"/>',
               "audio": '<path d="M4 10v4M8 6v12M12 9v6M16 4v16M20 10v4"/>',
-              "mute":  '<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M8 15l8-6"/>'
+              "mute":  '<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M8 15l8-6"/>',
+              "thumb": '<rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="8.5" cy="10" r="1.5"/><path d="M21 16l-5-5-7 8"/>'
             } %}
             <div class="tiles">
               {% for key, m in modes.items() %}
@@ -66,8 +76,16 @@
           </fieldset>
 
           <fieldset class="quals">
-            <legend><span>02</span> Calidad</legend>
+            <legend><span>02</span> Calidad <output id="size"></output></legend>
             <div class="chips" id="quals"><span class="nojs">Se usará la calidad recomendada.</span></div>
+          </fieldset>
+
+          <fieldset class="clip" id="clip">
+            <legend><span>03</span> Recorte <i>opcional</i></legend>
+            <div class="times">
+              <label>Desde <input name="start" id="start" type="text" inputmode="numeric" autocomplete="off" placeholder="0:00"></label>
+              <label>Hasta <input name="end" id="end" type="text" inputmode="numeric" autocomplete="off" placeholder="final"></label>
+            </div>
           </fieldset>
 
           <div class="go">
@@ -76,6 +94,7 @@
               <span id="pct" class="pct"></span>
             </button>
             <div class="wave" id="wave" aria-hidden="true"></div>
+            <button type="button" id="cancel" class="ghost cancel" hidden>Cancelar</button>
           </div>
         </section>
       </div>
@@ -87,7 +106,7 @@
     </section>
   </main>
 
-  <script id="modes-data" type="application/json">{{ modes|tojson }}</script>
+  <script id="config-data" type="application/json">{{ {"modes": modes, "platforms": platforms}|tojson }}</script>
   <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>

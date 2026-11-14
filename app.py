@@ -16,7 +16,20 @@ def media_error(e):
 
 @app.get("/")
 def index():
-    return render_template("index.html", modes=media.MODES)
+    return render_template("index.html", modes=media.MODES, platforms=media.PLATFORMS)
+
+
+@app.get("/sw.js")
+def service_worker():
+    """Se sirve desde la raíz para que su ámbito sea toda la app."""
+    r = send_file(os.path.join(app.static_folder, "sw.js"), mimetype="text/javascript")
+    r.headers["Cache-Control"] = "no-cache"
+    return r
+
+
+@app.get("/healthz")
+def healthz():
+    return jsonify(ok=True)
 
 
 @app.get("/api/info")
@@ -29,7 +42,8 @@ def info():
 def _create_job(data):
     url = (data.get("url") or "").strip()
     mode, quality = media.validate(url, data.get("mode") or "audio", data.get("quality"))
-    return jobs.create(url, mode, quality)
+    clip = media.parse_clip(data.get("start"), data.get("end"))
+    return jobs.create(url, mode, quality, clip)
 
 
 @app.post("/api/jobs")
@@ -44,6 +58,14 @@ def create_job():
 @app.get("/api/jobs/<job_id>")
 def job_status(job_id):
     job = jobs.get(job_id)
+    if not job:
+        return jsonify(error="Descarga caducada o inexistente"), 404
+    return jsonify(job.public())
+
+
+@app.delete("/api/jobs/<job_id>")
+def cancel_job(job_id):
+    job = jobs.cancel(job_id)
     if not job:
         return jsonify(error="Descarga caducada o inexistente"), 404
     return jsonify(job.public())
